@@ -42,12 +42,15 @@ color:red;
 
 <ul style="list-style:none">
 
-<li>Entropy: {{details.entropy}}</li>
-<li>Pattern Score: {{details.pattern}}</li>
-<li>Magic Mismatch: {{details.magic}}</li>
+<li>File Size: {{ details["file_size"] }}</li>
+
+<li>Entropy: {{ details["entropy"] }}</li>
+
+<li>Pattern Score: {{ details["pattern_score"] }}</li>
+
+<li>Magic Mismatch: {{ details["magic_mismatch"] }}</li>
 
 </ul>
-
 <br>
 
 <a href="/">Scan another file</a>
