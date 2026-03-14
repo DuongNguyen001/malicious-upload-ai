@@ -1,7 +1,8 @@
-from flask import Flask, request
-import sys
+from flask import Flask, request, render_template
 import os
+import sys
 
+# cho phép import file từ folder ngoài
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from predict import predict_file
@@ -14,18 +15,17 @@ if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
 
+# =========================
+# Trang chủ
+# =========================
 @app.route("/")
 def home():
-    return '''
-    <h2>Upload File Scanner</h2>
-
-    <form method="POST" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Scan File">
-    </form>
-    '''
+    return render_template("index.html")
 
 
+# =========================
+# Upload file
+# =========================
 @app.route("/upload", methods=["POST"])
 def upload():
 
@@ -37,32 +37,15 @@ def upload():
 
     prediction, details = predict_file(path)
 
-    result_html = ""
-
-    if prediction == "MALICIOUS":
-        result_html = "<h3 style='color:red'>❌ Malicious file detected</h3>"
-    else:
-        result_html = "<h3 style='color:green'>✅ File is safe</h3>"
-
-    return f'''
-    <h2>Upload File Scanner</h2>
-
-    <form method="POST" action="/upload" enctype="multipart/form-data">
-        <input type="file" name="file">
-        <input type="submit" value="Scan File">
-    </form>
-
-    <hr>
-
-    {result_html}
-
-    <h4>Analysis Details</h4>
-
-    <p>File Size: {details["file_size"]}</p>
-    <p>Entropy: {details["entropy"]:.2f}</p>
-    <p>Pattern Score: {details["pattern_score"]}</p>
-    <p>Magic Mismatch: {details["magic_mismatch"]}</p>
-    '''
+    return render_template(
+        "result.html",
+        result=prediction,
+        details=details
+    )
 
 
-app.run(host="0.0.0.0", port=5000)
+# =========================
+# Run server
+# =========================
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

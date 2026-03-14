@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Scan Result</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    text-align:center;
+    background:#111;
+    color:white;
+}
+
+.safe{
+color:#00ff9c;
+}
+
+.bad{
+color:red;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Scan Result</h1>
+
+{% if result == "MALICIOUS" %}
+
+<h2 class="bad">Malicious File Detected</h2>
+
+{% else %}
+
+<h2 class="safe">File is Safe</h2>
+
+{% endif %}
+
+<h3>Analysis Details</h3>
+
+<ul style="list-style:none">
+
+<li>Entropy: {{details.entropy}}</li>
+<li>Pattern Score: {{details.pattern}}</li>
+<li>Magic Mismatch: {{details.magic}}</li>
+
+</ul>
+
+<br>
+
+<a href="/">Scan another file</a>
+
+</body>
+</html>
