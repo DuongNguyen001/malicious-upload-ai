@@ -1,43 +1,45 @@
 import os
 import pickle
-
-from sklearn.ensemble import RandomForestClassifier
 from feature_extractor import extract_features
+from sklearn.ensemble import RandomForestClassifier
 
 X = []
 y = []
 
-# load dataset
-def load_dataset(folder, label):
+dataset_path = "dataset"
+
+for label in ["benign","malicious"]:
+
+    folder = os.path.join(dataset_path,label)
 
     for file in os.listdir(folder):
 
-        path = os.path.join(folder, file)
+        path = os.path.join(folder,file)
 
         try:
-            features = extract_features(path)
+            features,_ = extract_features(path)
 
             X.append(features)
-            y.append(label)
 
-        except Exception as e:
-            print("Error reading:", path)
+            if label == "malicious":
+                y.append(1)
+            else:
+                y.append(0)
+
+        except:
+            pass
 
 
-# benign = 0
-load_dataset("dataset/benign", 0)
+model = RandomForestClassifier(
+    n_estimators=200,
+    max_depth=20,
+    random_state=42
+)
 
-# malicious = 1
-load_dataset("dataset/malicious", 1)
+model.fit(X,y)
 
-print("Total samples:", len(X))
+os.makedirs("model",exist_ok=True)
 
-# train model
-model = RandomForestClassifier(n_estimators=100)
+pickle.dump(model,open("model/model.pkl","wb"))
 
-model.fit(X, y)
-
-# save model
-pickle.dump(model, open("model/model.pkl", "wb"))
-
-print("Model trained and saved!")
+print("Model trained successfully")

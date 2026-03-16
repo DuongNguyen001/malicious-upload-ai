@@ -1,43 +1,104 @@
 import os
+import math
 
-from features.entropy import calculate_entropy
-from features.pattern import detect_patterns
-from features.magic import get_file_type
+def entropy(data):
+    if not data:
+        return 0
+
+    occurences = [0] * 256
+
+    for x in data:
+        occurences[x] += 1
+
+    entropy = 0
+
+    for count in occurences:
+        if count == 0:
+            continue
+        p = count / len(data)
+        entropy -= p * math.log2(p)
+
+    return entropy
+
+def get_magic(data):
+
+    if data.startswith(b'\xFF\xD8'):
+        return "jpg"
+
+    elif data.startswith(b'\x89PNG'):
+        return "png"
+
+    elif data.startswith(b'%PDF'):
+        return "pdf"
+
+    elif b'<?php' in data:
+        return "php"
+
+    else:
+        return "unknown"
 
 
-def extract_features(path):
+def extract_features(file_path):
 
-    with open(path, "rb") as f:
+    with open(file_path, "rb") as f:
         data = f.read()
 
-    file_size = os.path.getsize(path)
+    text = data.decode(errors="ignore")
 
-    extension = path.split(".")[-1]
+    file_size = len(data)
 
-    entropy = calculate_entropy(data)
+    file_entropy = entropy(data)
 
-    pattern_score = detect_patterns(data)
+    extension = os.path.splitext(file_path)[1].lower()
 
-    file_type = get_file_type(path)
+    magic = get_magic(data)
 
     magic_mismatch = 0
 
-    if extension not in file_type:
+    if magic != "unknown" and magic != extension:
         magic_mismatch = 1
+
+    multiple_extensions = file_path.count(".")
+
+    suspicious_keywords = [
+        "eval",
+        "exec",
+        "system",
+        "shell_exec",
+        "passthru",
+        "base64_decode",
+        "cmd",
+        "wget",
+        "curl"
+    ]
+
+    pattern_score = 0
+    for keyword in suspicious_keywords:
+        if keyword in text:
+            pattern_score += 1
+
+    php_tag = 1 if "<?php" in text else 0
+
+    base64_count = text.count("base64")
 
     features = [
         file_size,
-        entropy,
+        file_entropy,
         pattern_score,
-        magic_mismatch,
-        len(extension)
+        php_tag,
+        base64_count,
+        multiple_extensions,
+	magic_mismatch
     ]
 
     details = {
         "file_size": file_size,
-        "entropy": entropy,
+        "entropy": round(file_entropy,2),
         "pattern_score": pattern_score,
-        "magic_mismatch": magic_mismatch
+        "php_tag": php_tag,
+        "base64_count": base64_count,
+        "multiple_extensions": multiple_extensions,
+	"magic_mismatch": magic_mismatch
     }
 
     return features, details
